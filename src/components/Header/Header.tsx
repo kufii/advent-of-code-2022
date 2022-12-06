@@ -29,6 +29,8 @@ export const Header = () => {
           e.stopImmediatePropagation()
         }}
         aria-label="open navigation menu"
+        aria-controls="nav-menu"
+        aria-expanded={navOpen}
       >
         <Icon name="menu" />
       </button>

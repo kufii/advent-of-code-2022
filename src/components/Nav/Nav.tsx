@@ -8,6 +8,7 @@ export const Nav = () => {
   const [navOpen, day] = useStore([(s) => s.navOpen, (s) => s.day])
   return (
     <div
+      id="nav-menu"
       onClick={() => setNavOpen(false)}
       class={classNames(style.sideNav, navOpen && style.active)}
       role="dialog"
