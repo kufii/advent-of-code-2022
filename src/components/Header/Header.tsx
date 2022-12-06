@@ -23,7 +23,7 @@ export const Header = () => {
         Skip nav
       </button>
       <button
-        class={style.navBtn}
+        class={classNames(style.navBtn, style.hamburger)}
         onClick={(e) => {
           setNavOpen(!navOpen)
           e.stopImmediatePropagation()
