@@ -1,0 +1,2 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[2],{VlWj:function(n,t,e){"use strict";e.r(t),e.d(t,"default",(function(){return u}));var c=e("1aSo"),o=e("P0Kq"),r="container__vZnQT",u=function(){return Object(c.h)("div",{class:r},Object(c.h)("h1",null,"Error 404"),Object(c.h)("p",null,"That page doesn't exist."),Object(c.h)("div",null,Object(c.h)(o.b,{url:"#",plain:!0,compact:!0},"Return to home page")))}}}]);
+//# sourceMappingURL=route-NotFound.chunk.fb483.js.map
