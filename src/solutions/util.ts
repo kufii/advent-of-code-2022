@@ -50,6 +50,8 @@ export const sortStr = (str: string) => [...str].sort(alphaSort).join('')
 
 export const sortNum = (a: number, b: number) => a - b
 
+export const sortNumDesc = (a: number, b: number) => b - a
+
 export const sortBy =
   <T>(
     ...cbs: (
@@ -286,3 +288,19 @@ export const memoize = <
     return result
   }
 }
+
+export const invert = <
+  TKey extends string | number | symbol,
+  TValue extends string | number | symbol
+>(
+  obj: Record<TKey, TValue>
+): Record<TValue, TKey> =>
+  Object.fromEntries(Object.entries(obj).map(([key, value]) => [value, key]))
+
+export const groupArr = <T>(arr: T[], n: number) =>
+  arr.reduce(
+    (acc, elem, i) => (
+      i % n ? acc[acc.length - 1].push(elem) : acc.push([elem]), acc
+    ),
+    [] as T[][]
+  )
