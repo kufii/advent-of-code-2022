@@ -1,0 +1,5 @@
+.container {
+  line-height: 1.37;
+  font-family: var(--font-family);
+  max-height: 40rem;
+}

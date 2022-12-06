@@ -1,0 +1,21 @@
+{
+  "name": "advent-of-code-2022",
+  "short_name": "advent-of-code-2022",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f23",
+  "theme_color": "#9a57ff",
+  "icons": [
+    {
+      "src": "./assets/icons/android-chrome-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "./assets/icons/android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

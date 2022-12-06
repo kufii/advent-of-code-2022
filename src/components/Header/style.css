@@ -1,0 +1,54 @@
+.header {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  height: 3.5rem;
+  position: sticky;
+  top: 0;
+  align-items: center;
+  color: var(--color-text-on-primary);
+  background: var(--color-primary);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  z-index: var(--z-index-front);
+}
+
+.logo {
+  font-size: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  padding-inline: 0.5rem;
+  text-decoration: none;
+  color: var(--color-text-on-primary);
+}
+
+.navBtn {
+  display: flex;
+  place-items: center;
+  padding: 1rem;
+  height: 100%;
+  background: rgba(255, 255, 255, 0);
+  text-decoration: none;
+  border: none;
+  color: var(--color-text-on-primary);
+  cursor: pointer;
+}
+
+.navBtn:hover,
+.navBtn:active,
+.navBtn:focus-visible {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.navBtn.active {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.skipContent {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: padding 0.1s, width 0.3s 0.1s;
+}
+
+.skipContent:focus {
+  width: auto;
+  padding: 1rem;
+}

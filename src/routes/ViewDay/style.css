@@ -1,0 +1,20 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navButtons {
+  justify-content: center;
+}
+
+.link:hover,
+.link:active,
+.link:focus-visible {
+  filter: brightness(150%);
+}

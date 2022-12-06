@@ -1,0 +1,10 @@
+.container {
+  color: var(--color-text-em);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.1rem;
+}
+
+.container button {
+  align-self: center;
+}

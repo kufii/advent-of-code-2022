@@ -1,0 +1,45 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-primary);
+  background: none;
+  border: 0.1em solid var(--color-primary);
+  padding: 0.4em 0.8em;
+  border-radius: 2rem;
+  text-decoration: none;
+  font-size: clamp(0.9rem, 0.7rem + 1vw, 1.1rem);
+  line-height: 1;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+.button[disabled] {
+  filter: grayscale(100%);
+  cursor: default;
+}
+
+.button:not([disabled]):hover,
+.button:not([disabled]):focus-visible {
+  filter: brightness(150%);
+}
+
+.button.primary {
+  color: var(--color-text-on-primary);
+  background: var(--color-primary);
+}
+
+.button.primary:hover,
+.button.primary:focus-visible {
+  filter: brightness(80%);
+}
+
+.button.plain {
+  border: none;
+}
+
+.button.compact {
+  padding: 0;
+  border: none;
+}

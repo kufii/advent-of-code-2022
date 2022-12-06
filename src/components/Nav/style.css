@@ -1,0 +1,56 @@
+.sideNav.active {
+  position: fixed;
+  top: 3.5rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  user-select: all;
+  z-index: var(--z-index-overlay);
+}
+
+.sideNav nav {
+  position: fixed;
+  top: 3.5rem;
+  bottom: 0;
+  left: 0;
+  width: 20rem;
+  max-width: 80%;
+  background-color: white;
+  transform: translateX(-100%);
+  transition: all 0.2s ease;
+  overflow-y: scroll;
+  z-index: var(--z-index-overlay);
+}
+
+.sideNav.active nav {
+  transform: translateX(0);
+}
+
+.sideNav ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sideNav a {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  text-decoration: none;
+  color: black;
+  font-weight: var(--font-weight-bold);
+}
+
+.sideNav a:hover,
+.sideNav a:active,
+.sideNav a:focus-visible {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sideNav a.active {
+  background: var(--color-primary-dark);
+  color: var(--color-text-on-primary);
+}

@@ -1,0 +1,33 @@
+html,
+body {
+  --color-bg: #0f0f23;
+  --color-bg-dark: #10101a;
+  --color-primary: #9a57ff;
+  --color-primary-dark: #673ab8;
+  --color-text: #ccc;
+  --color-text-em: #fff;
+  --color-text-subdued: #666;
+  --color-text-on-primary: #fff;
+  --font-family: 'Source Code Pro', monospace;
+  --font-weight-normal: 400;
+  --font-weight-book: 500;
+  --font-weight-bold: 600;
+  --z-index-front: 10;
+  --z-index-overlay: 20;
+  --border-radius: 0.4rem;
+  background: var(--color-bg);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+strong {
+  text-shadow: 0 0 5px currentColor;
+}
