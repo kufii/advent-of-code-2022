@@ -21,7 +21,7 @@ export const Nav = () => {
             <li key={d}>
               <a
                 href={`#/${d}`}
-                class={classNames(d === day && style.active)}
+                class={classNames(d === (day ?? 1) && style.active)}
                 tabIndex={navOpen ? undefined : -1}
               >
                 Day {d}
