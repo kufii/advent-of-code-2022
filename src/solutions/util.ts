@@ -197,6 +197,82 @@ export class InfiniteGrid<T> {
   }
 }
 
+export class TreeNode<TKey, TValue> {
+  key: TKey
+  value: TValue
+  parent?: TreeNode<TKey, TValue>
+  children: TreeNode<TKey, TValue>[]
+
+  constructor(key: TKey, value: TValue, parent?: TreeNode<TKey, TValue>) {
+    this.key = key
+    this.value = value
+    this.parent = parent
+    this.children = []
+  }
+
+  get isLeaf() {
+    return this.children.length === 0
+  }
+
+  get hasChildren() {
+    return !this.isLeaf
+  }
+}
+
+export class Tree<TKey, TValue> {
+  root: TreeNode<TKey, TValue>
+
+  constructor(key: TKey, value: TValue) {
+    this.root = new TreeNode(key, value)
+  }
+
+  *preOrderTraversal(node = this.root): Generator<TreeNode<TKey, TValue>> {
+    yield node
+    if (node.children.length) {
+      for (const child of node.children) {
+        yield* this.preOrderTraversal(child)
+      }
+    }
+  }
+
+  *postOrderTraversal(node = this.root): Generator<TreeNode<TKey, TValue>> {
+    if (node.children.length) {
+      for (const child of node.children) {
+        yield* this.postOrderTraversal(child)
+      }
+    }
+    yield node
+  }
+
+  insert(parentNodeKey: TKey, key: TKey, value: TValue) {
+    for (const node of this.preOrderTraversal()) {
+      if (node.key === parentNodeKey) {
+        node.children.push(new TreeNode(key, value, node))
+        return true
+      }
+    }
+    return false
+  }
+
+  remove(key: TKey) {
+    for (const node of this.preOrderTraversal()) {
+      const filtered = node.children.filter((c) => c.key !== key)
+      if (filtered.length !== node.children.length) {
+        node.children = filtered
+        return true
+      }
+    }
+    return false
+  }
+
+  find(key: TKey) {
+    for (const node of this.preOrderTraversal()) {
+      if (node.key === key) return node
+    }
+    return undefined
+  }
+}
+
 export const nTimes = (n: number, cb: (n: number) => unknown) => {
   for (let i = 0; i < n; i++) cb(i)
 }
