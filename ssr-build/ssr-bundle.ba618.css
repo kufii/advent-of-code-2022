@@ -863,6 +863,9 @@ strong {
   transition: all 0.2s ease;
   overflow-y: scroll;
   z-index: var(--z-index-overlay);
+  -webkit-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
 }
 
 .sideNav__LBlmQ.active__LqaE0 nav {
@@ -998,4 +1001,4 @@ strong {
 }
 
 
-/*# sourceMappingURL=ssr-bundle.82015.css.map*/
+/*# sourceMappingURL=ssr-bundle.ba618.css.map*/
