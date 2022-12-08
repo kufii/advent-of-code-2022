@@ -18,18 +18,16 @@ const inBounds = (grid: any[][], x: number, y: number) =>
 const getVisibilityMap = (trees: number[][]) =>
   trees.map((line, y) =>
     line.map((tree, x) =>
-      Boolean(
-        deltas.find(({ dx, dy }) => {
-          let curX = x + dx
-          let curY = y + dy
-          while (inBounds(trees, curX, curY)) {
-            if (trees[curY][curX] >= tree) return false
-            curX += dx
-            curY += dy
-          }
-          return true
-        })
-      )
+      deltas.some(({ dx, dy }) => {
+        let curX = x + dx
+        let curY = y + dy
+        while (inBounds(trees, curX, curY)) {
+          if (trees[curY][curX] >= tree) return false
+          curX += dx
+          curY += dy
+        }
+        return true
+      })
     )
   )
 
