@@ -1,14 +1,10 @@
-import { FunctionComponent, h } from 'preact'
+import { h } from 'preact'
+import { Solution as SolutionType } from '/solutions'
 import style from './style.css'
-
-interface Solution {
-  Part1?: FunctionComponent
-  Part2?: FunctionComponent
-}
 
 interface Props {
   part: 1 | 2
-  solution: Solution
+  solution: SolutionType
 }
 
 export const Solution = ({ part, solution }: Props) => {
