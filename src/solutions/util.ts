@@ -94,11 +94,7 @@ export const keyToPoint = (key: string) => {
   return { x, y }
 }
 
-export const getAdjacent = (
-  { x, y }: Point,
-  map?: any[][] | Point,
-  diagonal = false
-) =>
+export const getAdjacent = ({ x, y }: Point, diagonal = false) =>
   [
     [-1, 0],
     [1, 0],
@@ -112,15 +108,7 @@ export const getAdjacent = (
           [1, 1]
         ]
       : [])
-  ]
-    .map(([dx, dy]) => ({ x: x + dx, y: y + dy }))
-    .filter(
-      ({ x, y }) =>
-        x >= 0 &&
-        y >= 0 &&
-        (!map || y < (Array.isArray(map) ? map.length : map.y)) &&
-        (!map || x < (Array.isArray(map) ? map[0].length : map.x))
-    )
+  ].map(([dx, dy]) => ({ x: x + dx, y: y + dy }))
 
 export const parse2dArray = <T>(str: string, cbMap: (c: string) => T) =>
   str.split('\n').map((line) => [...line].map(cbMap))
