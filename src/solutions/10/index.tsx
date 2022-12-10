@@ -16,8 +16,8 @@ enum Pixel {
 const parseInput = () =>
   input
     .split('\n')
-    .map((line) => line.match(/^(?<cmd>[^ ]+)(?<n> [^ ]+)?/u)!.groups!)
-    .map(({ cmd, n }) => ({ cmd, n: Number(n ?? 0) } as Command))
+    .map((line) => line.split(' '))
+    .map(([cmd, n]) => ({ cmd, n: Number(n ?? 0) } as Command))
 
 const run = function* (program: Command[]) {
   let register = 1
