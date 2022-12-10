@@ -62,11 +62,11 @@ export const Part2 = () => {
   let line = newLine()
   const drawing: string[] = []
   for (const { cycle, register } of run(program)) {
-    const pos = (cycle - 1) % 40
+    const pos = (cycle - 1) % line.length
     if (Math.abs(register - pos) <= 1) {
       line[pos] = Pixel.On
     }
-    if (pos === 39) {
+    if (pos === line.length - 1) {
       drawing.push(line.join(''))
       line = newLine()
     }
