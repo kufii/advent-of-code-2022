@@ -25,11 +25,10 @@ const run = function* (program: Command[]) {
   for (const { cmd, n } of program) {
     cycle++
     yield { cycle, register }
-    if (cmd !== 'noop') {
-      cycle++
-      yield { cycle, register }
-      register += n
-    }
+    if (cmd === 'noop') continue
+    cycle++
+    yield { cycle, register }
+    register += n
   }
 }
 
