@@ -9,6 +9,7 @@ import * as day7 from './07'
 import * as day8 from './08'
 import * as day9 from './09'
 import * as day10 from './10'
+import * as day11 from './11'
 
 export interface Solution {
   Part1?: FunctionComponent
@@ -25,7 +26,8 @@ const solutions: Solution[] = [
   day7,
   day8,
   day9,
-  day10
+  day10,
+  day11
 ]
 
 export default solutions
