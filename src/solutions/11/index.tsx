@@ -7,7 +7,7 @@ type Operator = '*' | '+'
 
 interface Monkey {
   items: number[]
-  operator: '*' | '+'
+  operator: Operator
   n: 'old' | number
   divisible: number
   ifTrue: number
@@ -16,10 +16,7 @@ interface Monkey {
 
 const parseInput = (): Monkey[] =>
   input.split('\n\n').map((block) => {
-    const items = block
-      .match(/Starting items: (?<items>.+)/u)!
-      .groups!.items.split(',')
-      .map(Number)
+    const { items } = block.match(/Starting items: (?<items>.+)/u)!.groups!
     const { operator, n } = block.match(
       /Operation: new = old (?<operator>.) (?<n>.+)/u
     )!.groups!
@@ -31,7 +28,7 @@ const parseInput = (): Monkey[] =>
       /If false: throw to monkey (?<ifFalse>\d+)/u
     )!.groups!
     return {
-      items,
+      items: items.split(',').map(Number),
       operator: operator as Operator,
       n: n === 'old' ? n : Number(n),
       divisible: Number(divisible),
