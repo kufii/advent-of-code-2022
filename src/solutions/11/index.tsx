@@ -54,8 +54,9 @@ const keepAway = (
       const { operator, n, divisible, ifTrue, ifFalse } = monkey
       while (monkey.items.length) {
         let item = monkey.items.shift()!
-        if (operator === '*') item *= n === 'old' ? item : n
-        else item += n === 'old' ? item : n
+        const num = n === 'old' ? item : n
+        if (operator === '*') item *= num
+        else item += num
         item = calmingMethod(item)
         const throwTo = item % divisible === 0 ? ifTrue : ifFalse
         monkeys[throwTo].items.push(item)
