@@ -59,15 +59,15 @@
   transition: all 150ms ease-in;
 }
 
-.hamburger[aria-expanded="true"] line:first-child {
+.hamburger[aria-expanded='true'] line:first-child {
   transform: rotate(45deg);
   opacity: 0;
 }
 
-.hamburger[aria-expanded="true"] line:nth-child(2) {
+.hamburger[aria-expanded='true'] line:nth-child(2) {
   transform: rotate(45deg) translateY(6px);
 }
 
-.hamburger[aria-expanded="true"] line:last-child {
+.hamburger[aria-expanded='true'] line:last-child {
   transform: rotate(-45deg) translateY(-6px);
 }
