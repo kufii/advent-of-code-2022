@@ -646,8 +646,7 @@ code.language-markup .token.script .token.keyword {
 	box-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
 }
 
-html,
-body {
+:root {
   --color-bg: #0f0f23;
   --color-bg-dark: #10101a;
   --color-primary: #9a57ff;
@@ -663,6 +662,7 @@ body {
   --z-index-front: 10;
   --z-index-overlay: 20;
   --border-radius: 0.4rem;
+  color-scheme: dark;
   background: var(--color-bg);
   font-family: var(--font-family);
   font-weight: var(--font-weight-normal);
@@ -1001,4 +1001,4 @@ strong {
 }
 
 
-/*# sourceMappingURL=ssr-bundle.c22d8.css.map*/
+/*# sourceMappingURL=ssr-bundle.24202.css.map*/
