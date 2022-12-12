@@ -42,12 +42,12 @@ const getPath = (map: string[][], start: Point, end: Point) =>
           elevation.indexOf(map[y][x]) - elevation.indexOf(current) <= 1
       )
       .map(pointToKey)
-  }).path!
+  }).path
 
 export const Part1 = () => {
   const map = parseInput()
   const { start, end } = getStartAndEnd(map)
-  const path = getPath(map, start, end)
+  const path = getPath(map, start, end)!
 
   return (
     <>
