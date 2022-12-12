@@ -52,7 +52,8 @@ export const Part1 = () => {
   return (
     <>
       <p>
-        Hello World <Answer>{path.length - 1}</Answer>
+        The fewest steps required to get from your current location to the
+        location with the best signal is <Answer>{path.length - 1}</Answer>.
       </p>
       <Map map={parseInput()} path={path} />
     </>
@@ -72,7 +73,8 @@ export const Part2 = () => {
   return (
     <>
       <p>
-        Hello World <Answer>{path.length - 1}</Answer>
+        The fewest steps required to get from any location at elevation a to the
+        location with the best signal is <Answer>{path.length - 1}</Answer>.
       </p>
       <Map map={parseInput()} path={path} />
     </>
