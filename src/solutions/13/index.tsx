@@ -26,12 +26,7 @@ const compare = (a: any[], b: any[]): number => {
 export const Part1 = () => {
   const packets = parseInput()
   const result = packets
-    .map(([left, right], i) => ({
-      i: i + 1,
-      sort: compare(left, right)
-    }))
-    .filter(({ sort }) => sort < 0)
-    .map(({ i }) => i)
+    .map(([left, right], i) => (compare(left, right) < 0 ? i + 1 : 0))
     .reduce(sum)
   return (
     <p>
@@ -41,10 +36,9 @@ export const Part1 = () => {
 }
 
 export const Part2 = () => {
-  const packets = [...parseInput().flat(), [[2]], [[6]]].sort(compare)
-  const decoderKey = ['[[2]]', '[[6]]']
-    .map((json) => packets.findIndex((p) => JSON.stringify(p) === json) + 1)
-    .reduce(product)
+  const dividers = [[[2]], [[6]]]
+  const packets = [...parseInput().flat(), ...dividers].sort(compare)
+  const decoderKey = dividers.map((d) => packets.indexOf(d) + 1).reduce(product)
   return (
     <p>
       The decoder key of the distress signal is <Answer>{decoderKey}</Answer>.
