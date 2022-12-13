@@ -10,21 +10,17 @@ const parseInput = () =>
 
 const compare = (a: any[], b: any[]): number => {
   for (let i = 0; i < Math.min(a.length, b.length); i++) {
-    let left = a[i]
-    let right = b[i]
+    const left = a[i]
+    const right = b[i]
     const isLeftNumber = typeof left === 'number'
     const isRightNumber = typeof right === 'number'
-    if (isLeftNumber && isRightNumber) {
-      if (left === right) continue
-      return left < right ? -1 : 1
-    }
-    left = isLeftNumber ? [left] : left
-    right = isRightNumber ? [right] : right
-    const result = compare(left, right)
+    const result =
+      isLeftNumber && isRightNumber
+        ? left - right
+        : compare(isLeftNumber ? [left] : left, isRightNumber ? [right] : right)
     if (result !== 0) return result
   }
-  if (a.length === b.length) return 0
-  return a.length < b.length ? -1 : 1
+  return a.length - b.length
 }
 
 export const Part1 = () => {
@@ -34,7 +30,7 @@ export const Part1 = () => {
       i: i + 1,
       sort: compare(left, right)
     }))
-    .filter(({ sort }) => sort === -1)
+    .filter(({ sort }) => sort < 0)
     .map(({ i }) => i)
     .reduce(sum)
   return (
