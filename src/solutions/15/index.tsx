@@ -1,7 +1,7 @@
 import { h } from 'preact'
 import { Answer } from '/components'
 import input from './input'
-import { Point, min, max } from '../util'
+import { Point, min, max, range } from '../util'
 
 interface Signal {
   sensor: Point
@@ -32,18 +32,13 @@ const getNumNoBeacons = (signals: Signal[], y: number) => {
   const maxX = signals
     .map(({ sensor, beacon }) => sensor.x + getDistance(sensor, beacon))
     .reduce(max)
-  let count = 0
-  for (let x = minX; x <= maxX; x++) {
-    if (
-      signals.some(
-        ({ sensor, beacon }) =>
-          getDistance(sensor, { x, y }) <= getDistance(sensor, beacon) &&
-          !(x === beacon.x && y === beacon.y)
-      )
+  return range(minX, maxX).filter((x) =>
+    signals.some(
+      ({ sensor, beacon }) =>
+        getDistance(sensor, { x, y }) <= getDistance(sensor, beacon) &&
+        !(x === beacon.x && y === beacon.y)
     )
-      count++
-  }
-  return count
+  ).length
 }
 
 const getTuningFrequency = (signals: Signal[], max: number) => {
