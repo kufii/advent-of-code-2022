@@ -50,7 +50,7 @@ const getTuningFrequency = (signals: Signal[], max: number) => {
           const distance = getDistance(sensor, { x, y })
           if (distance > distanceToBeacon) return true
           const yDistance = Math.abs(sensor.y - y)
-          x = Math.max(x, sensor.x + (distanceToBeacon - yDistance))
+          x = sensor.x + (distanceToBeacon - yDistance)
           return false
         })
       )
