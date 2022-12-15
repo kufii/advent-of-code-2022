@@ -16,7 +16,7 @@ interface Props {
 const getUrl = (day: number, purge?: boolean) =>
   `https://${
     purge ? 'purge' : 'cdn'
-  }.jsdelivr.net/gh/kufii/advent-of-code-2022@main/src/solutions/${day
+  }.jsdelivr.net/gh/kufii/advent-of-code-2022@latest/src/solutions/${day
     .toString()
     .padStart(2, '0')}/index.tsx`
 
