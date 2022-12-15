@@ -46,24 +46,20 @@ const getNumNoBeacons = (signals: Signal[], y: number) => {
   return count
 }
 
-const getFrequency = (signals: Signal[], max: number) => {
-  let x = 0
-  let y = 0
-  for (y = 0; y <= max; y++) {
-    for (x = 0; x <= max; x++) {
-      let hit = false
-      for (const { sensor, beacon } of signals) {
-        const distance =
-          Math.abs(sensor.x - beacon.x) + Math.abs(sensor.y - beacon.y)
-        const distance2 = Math.abs(sensor.x - x) + Math.abs(sensor.y - y)
-        if (distance2 <= distance) {
+const getTuningFrequency = (signals: Signal[], max: number) => {
+  for (let y = 0; y <= max; y++) {
+    for (let x = 0; x <= max; x++) {
+      if (
+        signals.every(({ sensor, beacon }) => {
+          const distanceToBeacon = getDistance(sensor, beacon)
+          const distance = getDistance(sensor, { x, y })
+          if (distance > distanceToBeacon) return true
           const yDistance = Math.abs(sensor.y - y)
-          x = Math.max(x, sensor.x + (distance - yDistance))
-          hit = true
-          break
-        }
-      }
-      if (!hit) return 4000000 * x + y
+          x = Math.max(x, sensor.x + (distanceToBeacon - yDistance))
+          return false
+        })
+      )
+        return 4000000 * x + y
     }
   }
 }
@@ -81,7 +77,7 @@ export const Part1 = () => {
 
 export const Part2 = () => {
   const signals = parseInput()
-  const frequency = getFrequency(signals, 4000000)
+  const frequency = getTuningFrequency(signals, 4000000)
   return (
     <p>
       The tuning frequency is <Answer>{frequency}</Answer>.
