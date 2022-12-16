@@ -1,7 +1,7 @@
 import { h } from 'preact'
 import { Answer } from '/components'
 import input from './input'
-import { dijkstra, sortBy } from '../util'
+import { dijkstra, sum } from '../util'
 import { useEffect, useState } from 'preact/hooks'
 import { setIntervalImmediate } from '/shared/web-utilities/util'
 
@@ -38,9 +38,7 @@ const getMaxPressure = function* (
   timeElephant = 0,
   yieldEvery?: number
 ) {
-  const closed = Object.keys(valves)
-    .filter((key) => valves[key].flow > 0)
-    .sort(sortBy({ cb: (key) => valves[key].flow, desc: true }))
+  const closed = Object.keys(valves).filter((key) => valves[key].flow > 0)
   const paths = [...closed, 'AA']
     .map((start) => ({
       start,
@@ -84,20 +82,24 @@ const getMaxPressure = function* (
     visited.add(current)
     visited.add(current2)
     const remaining = closed.filter((key) => !visited.has(key))
-    if ((time <= 0 && time2 <= 0) || !remaining.length) {
+    if ((time <= 1 && time2 <= 1) || !remaining.length) {
       const total = pressure + pressure2
-      if (total > max) {
-        max = total
-      }
+      if (total > max) max = total
       return
     }
+    const bestPossible =
+      pressure +
+      pressure2 +
+      remaining
+        .map((key) => valves[key].flow * (Math.max(time, time2) - 1))
+        .reduce(sum)
+    if (bestPossible <= max) return
 
     const iterate = function* (remaining: string[]) {
       for (const next of remaining) {
-        yield
         const [newTime, newPressure] = moveTo(current, next, time, pressure)
         const remaining2 = remaining.filter((key) => key !== next)
-        if (time2 <= 0 || !remaining2.length) {
+        if (time2 <= 1 || !remaining2.length) {
           yield* openValves(
             newTime,
             time2,
@@ -119,7 +121,6 @@ const getMaxPressure = function* (
       newTime: number,
       newPressure: number
     ) {
-      yield
       for (const next2 of remaining) {
         const [newTime2, newPressure2] = moveTo(
           current2,
@@ -139,11 +140,12 @@ const getMaxPressure = function* (
       }
     }
 
-    if (time > 0) {
+    if (time > 1) {
       yield* iterate(remaining)
     } else {
       yield* iterate2(remaining, current, time, pressure)
     }
+    yield
   }
   let n = 0
   for (const _ of openValves(timeYou, timeElephant)) {
@@ -167,7 +169,7 @@ export const Part2 = () => {
   const [result, setResult] = useState<number>()
   useEffect(() => {
     const valves = parseInput()
-    const gen = getMaxPressure(valves, 26, 26, 100000)
+    const gen = getMaxPressure(valves, 26, 26, 10000)
     const id = setIntervalImmediate(() => {
       const { value, done } = gen.next()
       if (value) setResult(value)
