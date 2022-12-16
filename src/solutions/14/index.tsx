@@ -4,6 +4,7 @@ import input from './input'
 import { InfiniteGrid, output2dArray, Point } from '../util'
 import { useEffect, useState } from 'preact/hooks'
 import { useStore } from '/store'
+import { setIntervalImmediate } from '/shared/web-utilities/util'
 
 enum Tile {
   Empty = ' ',
@@ -97,7 +98,7 @@ export const Part1 = () => {
       return true
     }
 
-    if (showVisualization) id = setInterval(tick, 50)
+    if (showVisualization) id = setIntervalImmediate(tick, 50)
     else while (tick()) {}
 
     return () => clearInterval(id)
