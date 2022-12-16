@@ -82,7 +82,7 @@ const getMaxPressure = function* (
     visited.add(current)
     visited.add(current2)
     const remaining = closed.filter((key) => !visited.has(key))
-    if ((time <= 1 && time2 <= 1) || !remaining.length) {
+    if ((time <= 2 && time2 <= 2) || !remaining.length) {
       const total = pressure + pressure2
       if (total > max) max = total
       return
@@ -99,7 +99,7 @@ const getMaxPressure = function* (
       for (const next of remaining) {
         const [newTime, newPressure] = moveTo(current, next, time, pressure)
         const remaining2 = remaining.filter((key) => key !== next)
-        if (time2 <= 1 || !remaining2.length) {
+        if (time2 <= 2 || !remaining2.length) {
           yield* openValves(
             newTime,
             time2,
@@ -140,7 +140,7 @@ const getMaxPressure = function* (
       }
     }
 
-    if (time > 1) {
+    if (time > 2) {
       yield* iterate(remaining)
     } else {
       yield* iterate2(remaining, current, time, pressure)
@@ -152,6 +152,7 @@ const getMaxPressure = function* (
     n++
     if (yieldEvery && n % yieldEvery === 0) yield _
   }
+  const end = Date.now()
   yield max
 }
 
