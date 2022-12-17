@@ -47,7 +47,7 @@ const dropRocks = function* (
   numRocks: number,
   visualize = false,
   width = 7
-): Generator<string | number> {
+) {
   const grid = new InfiniteGrid(Cell.Empty)
   range(0, width - 1).map((x) => grid.set(x, 0, Cell.Empty))
 
