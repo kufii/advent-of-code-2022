@@ -18,26 +18,26 @@ const parseInput = () => [...input] as Dir[]
 
 const shapes = [
   '####',
-  dedent(`
+  dedent`
     .#.
     ###
     .#.
-  `),
-  dedent(`
+  `,
+  dedent`
     ..#
     ..#
     ###
-  `),
-  dedent(`
+  `,
+  dedent`
     #
     #
     #
     #
-  `),
-  dedent(`
+  `,
+  dedent`
     ##
     ##
-  `)
+  `
 ].map((shape) =>
   parse2dArray(shape, (cell) => (cell === '#' ? Cell.Rock : Cell.Empty))
 )
