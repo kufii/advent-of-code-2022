@@ -156,9 +156,9 @@ export class InfiniteGrid<T> {
   }
 
   toArray(min?: Point, max?: Point) {
-    const bounds = this.bounds
-    if (!min) min = bounds.min
-    if (!max) max = bounds.max
+    const bounds = min && max ? null : this.bounds
+    if (!min) min = bounds!.min
+    if (!max) max = bounds!.max
     const array = make2dArray(max.y - min.y + 1, max.x - min.x + 1, this.fill)
     for (let y = min.y; y <= max.y; y++) {
       for (let x = min.x; x <= max.x; x++) {
