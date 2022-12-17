@@ -148,7 +148,7 @@ const useSolution = (n: number) => {
       }
       if (done) clearInterval(id)
     }
-    const id = setIntervalImmediate(tick, showVisualization ? 50 : 0)
+    const id = setIntervalImmediate(tick, showVisualization ? 40 : 0)
     return () => clearInterval(id)
   }, [showVisualization, n])
 
@@ -161,13 +161,11 @@ export const Part1 = () => {
 
   return (
     <>
-      {result ? (
+      {result && (
         <p>
           The tower will be <Answer>{result}</Answer> units tall after {n} rocks
           have stopped falling.
         </p>
-      ) : (
-        <p>Running...</p>
       )}
       <Visualization>{output}</Visualization>
     </>
@@ -180,13 +178,11 @@ export const Part2 = () => {
 
   return (
     <>
-      {result ? (
+      {result && (
         <p>
           The tower will be <Answer>{result}</Answer> units tall after {n} rocks
           have stopped falling.
         </p>
-      ) : (
-        <p>Running...</p>
       )}
       <Visualization>{output}</Visualization>
     </>
