@@ -1,17 +1,27 @@
-import { h } from 'preact'
+import { h, Fragment } from 'preact'
 import dedent from 'dedent'
-import { Answer } from '/components'
+import { Answer, Visualization } from '/components'
 import input from './input'
-import { min, range } from '../util'
+import { InfiniteGrid, min, output2dArray, range } from '../util'
 import { useEffect, useState } from 'preact/hooks'
 import { setIntervalImmediate } from '/shared/web-utilities/util'
+import { useStore } from '/store'
 
 type Dir = '<' | '>'
+
+enum Cell {
+  Empty = ' ',
+  Rock = '█'
+}
 
 interface Rock {
   x: number
   y: number
-  shape: string[][]
+  shape: Cell[][]
+}
+
+interface FallingRock extends Rock {
+  falling: boolean
 }
 
 const parseInput = () => [...input] as Dir[]
@@ -38,34 +48,40 @@ const shapes = [
     ##
     ##
   `)
-].map((shape) => shape.split('\n').map((line) => [...line]))
+].map((shape) =>
+  shape
+    .split('\n')
+    .map((line) =>
+      [...line].map((cell) => (cell === '#' ? Cell.Rock : Cell.Empty))
+    )
+)
 
 const dropRocks = function* (
   jets: Dir[],
   numRocks: number,
+  visualize = false,
   width = 7
-): Generator<Rock | number> {
+): Generator<FallingRock | number> {
   const rocks: Rock[] = []
 
   const cellOpen = (x: number, y: number) =>
+    x > 0 &&
+    x < width &&
+    y <= 0 &&
     !rocks.some((rock) =>
       rock.shape.some((line, rockY) =>
         line.some(
           (cell, rockX) =>
-            cell === '#' && rock.y + rockY === y && rock.x + rockX === x
+            cell === Cell.Rock && rock.y + rockY === y && rock.x + rockX === x
         )
       )
     )
 
-  const canFit = (shape: string[][], x: number, y: number) =>
+  const canFit = (shape: Cell[][], x: number, y: number) =>
     !shape.some((line, shapeY) =>
       line.some(
         (cell, shapeX) =>
-          cell === '#' &&
-          (x + shapeX < 0 ||
-            x + shapeX >= width ||
-            y + shapeY > 0 ||
-            !cellOpen(x + shapeX, y + shapeY))
+          cell === Cell.Rock && !cellOpen(x + shapeX, y + shapeY)
       )
     )
 
@@ -76,7 +92,7 @@ const dropRocks = function* (
       range(minY, minY + 16)
         .map((y) =>
           range(0, width - 1)
-            .map((x) => (cellOpen(x, y) ? '.' : '#'))
+            .map((x) => (cellOpen(x, y) ? Cell.Empty : Cell.Rock))
             .join('')
         )
         .join('\n'),
@@ -115,67 +131,97 @@ const dropRocks = function* (
       const newY = rock.y + 1
       if (!canFit(shape, rock.x, newY)) break
       rock.y = newY
+      if (visualize) yield { ...rock, falling: true }
     }
     rocks.push(rock)
-    yield rock
+    yield { ...rock, falling: false }
   }
   yield Math.abs(getTop()) + 1
 }
 
-export const Part1 = () => {
+const useSolution = (n: number) => {
+  const showVisualization = useStore((s) => s.showVisualization)
   const [result, setResult] = useState<number>()
-  const n = 2022
+  const [output, setOutput] = useState<string>()
 
   useEffect(() => {
     setResult(undefined)
     const jets = parseInput()
-    const gen = dropRocks(jets, n)
+    const gen = dropRocks(jets, n, showVisualization)
+    const grid = new InfiniteGrid(Cell.Empty)
+    range(0, 6).map((x) => grid.set(x, 0, Cell.Empty))
+
+    const fillShape = (shape: Cell[][], x: number, y: number, clear = false) =>
+      shape.forEach((line, shapeY) =>
+        line.forEach(
+          (cell, shapeX) =>
+            cell === Cell.Rock &&
+            grid.set(x + shapeX, y + shapeY, clear ? Cell.Empty : Cell.Rock)
+        )
+      )
+
     const tick = () => {
       const { value, done } = gen.next()
-      if (value && typeof value === 'number') {
-        setResult(value)
+      if (value) {
+        if (typeof value === 'number') setResult(value)
+        else {
+          const { x, y, shape, falling } = value as FallingRock
+          fillShape(shape, x, y)
+          const { min } = grid.bounds
+          setOutput(
+            output2dArray(
+              grid.toArray(
+                { x: 0, y: min.y },
+                { x: 6, y: Math.min(0, min.y + 20) }
+              )
+            )
+          )
+          if (falling) fillShape(shape, x, y, true)
+        }
       }
       if (done) clearInterval(id)
     }
-    const id = setIntervalImmediate(tick, 0)
+    const id = setIntervalImmediate(tick, showVisualization ? 30 : 0)
     return () => clearInterval(id)
-  }, [])
+  }, [showVisualization, n])
 
-  return result ? (
-    <p>
-      The tower will be <Answer>{result}</Answer> units tall after {n} rocks
-      have stopped falling.
-    </p>
-  ) : (
-    <p>Running...</p>
+  return { result, output }
+}
+
+export const Part1 = () => {
+  const n = 2022
+  const { result, output } = useSolution(n)
+
+  return (
+    <>
+      {result ? (
+        <p>
+          The tower will be <Answer>{result}</Answer> units tall after {n} rocks
+          have stopped falling.
+        </p>
+      ) : (
+        <p>Running...</p>
+      )}
+      <Visualization>{output}</Visualization>
+    </>
   )
 }
 
 export const Part2 = () => {
-  const [result, setResult] = useState<number>()
   const n = 1000000000000
+  const { result, output } = useSolution(n)
 
-  useEffect(() => {
-    setResult(undefined)
-    const jets = parseInput()
-    const gen = dropRocks(jets, n)
-    const tick = () => {
-      const { value, done } = gen.next()
-      if (value && typeof value === 'number') {
-        setResult(value)
-      }
-      if (done) clearInterval(id)
-    }
-    const id = setIntervalImmediate(tick, 0)
-    return () => clearInterval(id)
-  }, [])
-
-  return result ? (
-    <p>
-      The tower will be <Answer>{result}</Answer> units tall after {n} rocks
-      have stopped falling.
-    </p>
-  ) : (
-    <p>Running...</p>
+  return (
+    <>
+      {result ? (
+        <p>
+          The tower will be <Answer>{result}</Answer> units tall after {n} rocks
+          have stopped falling.
+        </p>
+      ) : (
+        <p>Running...</p>
+      )}
+      <Visualization>{output}</Visualization>
+    </>
   )
 }
