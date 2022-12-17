@@ -2,7 +2,7 @@ import { h, Fragment } from 'preact'
 import dedent from 'dedent'
 import { Answer, Visualization } from '/components'
 import input from './input'
-import { InfiniteGrid, min, output2dArray, range } from '../util'
+import { InfiniteGrid, output2dArray, range } from '../util'
 import { useEffect, useState } from 'preact/hooks'
 import { setIntervalImmediate } from '/shared/web-utilities/util'
 import { useStore } from '/store'
@@ -12,16 +12,6 @@ type Dir = '<' | '>'
 enum Cell {
   Empty = ' ',
   Rock = '█'
-}
-
-interface Rock {
-  x: number
-  y: number
-  shape: Cell[][]
-}
-
-interface FallingRock extends Rock {
-  falling: boolean
 }
 
 const parseInput = () => [...input] as Dir[]
@@ -61,21 +51,12 @@ const dropRocks = function* (
   numRocks: number,
   visualize = false,
   width = 7
-): Generator<FallingRock | number> {
-  const rocks: Rock[] = []
+): Generator<string | number> {
+  const grid = new InfiniteGrid(Cell.Empty)
+  range(0, width - 1).map((x) => grid.set(x, 0, Cell.Empty))
 
   const cellOpen = (x: number, y: number) =>
-    x > 0 &&
-    x < width &&
-    y <= 0 &&
-    !rocks.some((rock) =>
-      rock.shape.some((line, rockY) =>
-        line.some(
-          (cell, rockX) =>
-            cell === Cell.Rock && rock.y + rockY === y && rock.x + rockX === x
-        )
-      )
-    )
+    x >= 0 && x < width && y <= 0 && grid.get(x, y) === Cell.Empty
 
   const canFit = (shape: Cell[][], x: number, y: number) =>
     !shape.some((line, shapeY) =>
@@ -85,58 +66,68 @@ const dropRocks = function* (
       )
     )
 
-  const getTop = () => rocks.map((r) => r.y).reduce(min, 0)
-
-  const getCacheKey = (minY: number, i: number) =>
-    [
-      range(minY, minY + 16)
-        .map((y) =>
-          range(0, width - 1)
-            .map((x) => (cellOpen(x, y) ? Cell.Empty : Cell.Rock))
-            .join('')
-        )
-        .join('\n'),
-      i % shapes.length
-    ].join(';')
+  const drawShape = (shape: Cell[][], x: number, y: number, clear = false) =>
+    shape.forEach((line, shapeY) =>
+      line.forEach(
+        (cell, shapeX) =>
+          cell === Cell.Rock &&
+          grid.set(x + shapeX, y + shapeY, clear ? Cell.Empty : Cell.Rock)
+      )
+    )
 
   const cache = new Map<string, [number, number, number]>()
   let cacheFound = false
   let j = 0
+  let minY = 1
+
+  const getTopNRows = (n: number) =>
+    range(Math.min(minY, 0), Math.min(minY, 0) + n - 1).map((y) =>
+      range(0, width - 1).map((x) => (cellOpen(x, y) ? Cell.Empty : Cell.Rock))
+    )
+
+  const getVisualization = () =>
+    output2dArray(getTopNRows(Math.min(20, Math.abs(Math.min(minY, 0)) + 1)))
+
   for (let i = 0; i < numRocks; i++) {
     if (!cacheFound) {
-      const minY = getTop()
-      const cacheKey = getCacheKey(minY, i)
+      const topRows = getTopNRows(17)
+      const cacheKey = [output2dArray(topRows), i % shapes.length].join(';')
       if (cache.has(cacheKey)) {
         cacheFound = true
         const [lastI, lastJ, lastMinY] = cache.get(cacheKey)!
         const repeating = i - lastI
         const times = Math.floor((numRocks - i) / repeating)
-        rocks.forEach((r) => (r.y -= (lastMinY - minY) * times))
+        minY -= (lastMinY - minY) * times
+        drawShape(topRows, 0, minY)
         i += repeating * times
         j += (j - lastJ) * times
       } else cache.set(cacheKey, [i, j, minY])
     }
 
     const shape = shapes[i % shapes.length]
-    const rock = {
-      x: 2,
-      y: rocks.map((r) => r.y).reduce(min, 1) - shape.length - 3,
-      shape
-    }
+    let x = 2
+    let y = minY - shape.length - 3
     while (true) {
       const dir = jets[j % jets.length]
       j++
-      const newX = dir === '<' ? rock.x - 1 : rock.x + 1
-      if (canFit(shape, newX, rock.y)) rock.x = newX
-      const newY = rock.y + 1
-      if (!canFit(shape, rock.x, newY)) break
-      rock.y = newY
-      if (visualize) yield { ...rock, falling: true }
+      const newX = dir === '<' ? x - 1 : x + 1
+      if (canFit(shape, newX, y)) x = newX
+      const newY = y + 1
+      if (!canFit(shape, x, newY)) break
+      y = newY
+      if (visualize) {
+        drawShape(shape, x, y)
+        yield getVisualization()
+        drawShape(shape, x, y, true)
+      }
     }
-    rocks.push(rock)
-    yield { ...rock, falling: false }
+    drawShape(shape, x, y)
+    minY = Math.min(minY, y)
+    if (visualize) {
+      yield getVisualization()
+    }
   }
-  yield Math.abs(getTop()) + 1
+  yield Math.abs(minY) + 1
 }
 
 const useSolution = (n: number) => {
@@ -148,40 +139,16 @@ const useSolution = (n: number) => {
     setResult(undefined)
     const jets = parseInput()
     const gen = dropRocks(jets, n, showVisualization)
-    const grid = new InfiniteGrid(Cell.Empty)
-    range(0, 6).map((x) => grid.set(x, 0, Cell.Empty))
-
-    const fillShape = (shape: Cell[][], x: number, y: number, clear = false) =>
-      shape.forEach((line, shapeY) =>
-        line.forEach(
-          (cell, shapeX) =>
-            cell === Cell.Rock &&
-            grid.set(x + shapeX, y + shapeY, clear ? Cell.Empty : Cell.Rock)
-        )
-      )
 
     const tick = () => {
       const { value, done } = gen.next()
       if (value) {
         if (typeof value === 'number') setResult(value)
-        else {
-          const { x, y, shape, falling } = value as FallingRock
-          fillShape(shape, x, y)
-          const { min } = grid.bounds
-          setOutput(
-            output2dArray(
-              grid.toArray(
-                { x: 0, y: min.y },
-                { x: 6, y: Math.min(0, min.y + 20) }
-              )
-            )
-          )
-          if (falling) fillShape(shape, x, y, true)
-        }
+        else if (showVisualization) setOutput(value)
       }
       if (done) clearInterval(id)
     }
-    const id = setIntervalImmediate(tick, showVisualization ? 30 : 0)
+    const id = setIntervalImmediate(tick, showVisualization ? 50 : 0)
     return () => clearInterval(id)
   }, [showVisualization, n])
 
