@@ -2,7 +2,7 @@ import { h, Fragment } from 'preact'
 import dedent from 'dedent'
 import { Answer, Visualization } from '/components'
 import input from './input'
-import { InfiniteGrid, output2dArray, range } from '../util'
+import { InfiniteGrid, output2dArray, parse2dArray, range } from '../util'
 import { useEffect, useState } from 'preact/hooks'
 import { setIntervalImmediate } from '/shared/web-utilities/util'
 import { useStore } from '/store'
@@ -39,11 +39,7 @@ const shapes = [
     ##
   `)
 ].map((shape) =>
-  shape
-    .split('\n')
-    .map((line) =>
-      [...line].map((cell) => (cell === '#' ? Cell.Rock : Cell.Empty))
-    )
+  parse2dArray(shape, (cell) => (cell === '#' ? Cell.Rock : Cell.Empty))
 )
 
 const dropRocks = function* (
@@ -77,7 +73,6 @@ const dropRocks = function* (
 
   const cache = new Map<string, [number, number, number]>()
   let cacheFound = false
-  let j = 0
   let minY = 1
 
   const getHeight = () => minY * -1 + 1
@@ -85,6 +80,11 @@ const dropRocks = function* (
   const getTopNRows = (n: number) =>
     range(minY, minY + n - 1).map((y) =>
       range(0, width - 1).map((x) => (cellOpen(x, y) ? Cell.Empty : Cell.Rock))
+    )
+
+  const getCacheKey = (i: number, j: number) =>
+    [output2dArray(getTopNRows(5)), i % shapes.length, j % jets.length].join(
+      ';'
     )
 
   const getVisualization = (rows = 20) =>
@@ -95,20 +95,15 @@ const dropRocks = function* (
       )
     )
 
-  const getCacheKey = (i: number, j: number) =>
-    [output2dArray(getTopNRows(5)), i % shapes.length, j % jets.length].join(
-      ';'
-    )
-
-  for (let i = 0; i < numRocks; i++) {
+  for (let i = 0, j = 0; i < numRocks; i++) {
     if (!cacheFound) {
       const cacheKey = getCacheKey(i, j)
       if (cache.has(cacheKey)) {
         cacheFound = true
-        const topRows = getTopNRows(getHeight())
         const [lastI, lastJ, lastMinY] = cache.get(cacheKey)!
         const repeating = i - lastI
         const times = Math.floor((numRocks - i) / repeating)
+        const topRows = getTopNRows(repeating)
         minY -= (lastMinY - minY) * times
         drawShape(topRows, 0, minY)
         i += repeating * times
