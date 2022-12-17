@@ -80,8 +80,10 @@ const dropRocks = function* (
   let j = 0
   let minY = 1
 
+  const getHeight = () => minY * -1 + 1
+
   const getTopNRows = (n: number) =>
-    range(Math.min(minY, 0), Math.min(minY, 0) + n - 1).map((y) =>
+    range(minY, minY + n - 1).map((y) =>
       range(0, width - 1).map((x) => (cellOpen(x, y) ? Cell.Empty : Cell.Rock))
     )
 
@@ -93,12 +95,17 @@ const dropRocks = function* (
       )
     )
 
+  const getCacheKey = (i: number, j: number) =>
+    [output2dArray(getTopNRows(5)), i % shapes.length, j % jets.length].join(
+      ';'
+    )
+
   for (let i = 0; i < numRocks; i++) {
     if (!cacheFound) {
-      const topRows = getTopNRows(17)
-      const cacheKey = [output2dArray(topRows), i % shapes.length].join(';')
+      const cacheKey = getCacheKey(i, j)
       if (cache.has(cacheKey)) {
         cacheFound = true
+        const topRows = getTopNRows(getHeight())
         const [lastI, lastJ, lastMinY] = cache.get(cacheKey)!
         const repeating = i - lastI
         const times = Math.floor((numRocks - i) / repeating)
@@ -132,7 +139,7 @@ const dropRocks = function* (
       yield getVisualization()
     }
   }
-  yield Math.abs(minY) + 1
+  yield getHeight()
 }
 
 const useSolution = (n: number) => {
