@@ -137,6 +137,7 @@ const useSolution = (n: number) => {
 
   useEffect(() => {
     setResult(undefined)
+    setOutput(undefined)
     const jets = parseInput()
     const gen = dropRocks(jets, n, showVisualization)
 
