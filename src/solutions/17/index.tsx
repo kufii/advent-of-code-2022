@@ -85,8 +85,13 @@ const dropRocks = function* (
       range(0, width - 1).map((x) => (cellOpen(x, y) ? Cell.Empty : Cell.Rock))
     )
 
-  const getVisualization = () =>
-    output2dArray(getTopNRows(Math.min(20, Math.abs(Math.min(minY, 0)) + 1)))
+  const getVisualization = (rows = 20) =>
+    output2dArray(
+      grid.toArray(
+        { x: 0, y: Math.min(minY - 3, -rows) },
+        { x: width - 1, y: Math.min(0, minY - 3 + rows) }
+      )
+    )
 
   for (let i = 0; i < numRocks; i++) {
     if (!cacheFound) {
