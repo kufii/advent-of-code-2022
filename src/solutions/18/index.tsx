@@ -41,9 +41,8 @@ const getBounds = (cubes: Point3[]) => ({
 const getReachableFaces = (cubes: Point3[]) => {
   const potentialFaces = getOpenFaces(cubes)
   const { min, max } = getBounds(cubes)
-  const { prev } = dijkstra(point3ToKey(min), null, (key) => {
-    const point = keyToPoint3(key)
-    return getAdjacent(point)
+  const { prev } = dijkstra(point3ToKey(min), null, (key) =>
+    getAdjacent(keyToPoint3(key))
       .filter(
         ({ x, y, z }) =>
           x >= min.x &&
@@ -55,7 +54,7 @@ const getReachableFaces = (cubes: Point3[]) => {
           isOpen(cubes, { x, y, z })
       )
       .map(point3ToKey)
-  })
+  )
   return potentialFaces.filter((face) => prev.has(point3ToKey(face)))
 }
 
