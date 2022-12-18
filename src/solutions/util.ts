@@ -94,6 +94,19 @@ export const keyToPoint = (key: string) => {
   return { x, y }
 }
 
+export interface Point3 {
+  x: number
+  y: number
+  z: number
+}
+
+export const point3ToKey = ({ x, y, z }: Point3) => `${x},${y},${z}`
+
+export const keyToPoint3 = (key: string) => {
+  const [x, y, z] = key.split(',').map(Number)
+  return { x, y, z }
+}
+
 export const getAdjacent = ({ x, y }: Point, diagonal = false) =>
   [
     [-1, 0],
