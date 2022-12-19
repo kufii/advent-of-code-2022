@@ -152,7 +152,6 @@ const getMaxPressure = function* (
     n++
     if (yieldEvery && n % yieldEvery === 0) yield _
   }
-  const end = Date.now()
   yield max
 }
 
