@@ -81,15 +81,14 @@ const collectGeode = function* (
   ): Generator<undefined> {
     yield
     geode = Math.max(geode, materials.geode)
-    if (time <= 0) return
-
     if (
+      time <= 0 ||
       range(1, time)
         .reverse()
         .map((t, i) => (robots.geode + i) * t)
         .reduce(sum) +
         materials.geode <=
-      geode
+        geode
     )
       return
 
