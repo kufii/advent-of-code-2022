@@ -100,11 +100,7 @@ const collectGeode = function* (
       if (
         mats.some((m) => original[m] < costs[m]) ||
         (mat !== 'geode' &&
-          robots[mat] >=
-            mats
-              .filter((m) => m !== mat)
-              .map((m) => blueprint[m][mat])
-              .reduce(sum))
+          robots[mat] >= mats.map((m) => blueprint[m][mat]).reduce(max))
       )
         continue
       const newMats = structuredClone(materials)
