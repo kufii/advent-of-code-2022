@@ -69,7 +69,7 @@ const collectGeode = function* (
   const maxOreRequirement = mats.map((m) => blueprint[m].ore).reduce(max)
   let geode = 0
 
-  const recuse = memoize(function* (
+  const recurse = memoize(function* (
     materials: Materials = { ore: 0, clay: 0, obsidian: 0, geode: 0 },
     robots: Materials = {
       ore: 1,
@@ -111,23 +111,19 @@ const collectGeode = function* (
       const newRobots = structuredClone(robots)
       mats.forEach((m) => (newMats[m] -= costs[m]))
       newRobots[mat]++
-      yield* recuse(newMats, newRobots, time - 1)
+      yield* recurse(newMats, newRobots, time - 1)
       if (preciousMats.includes(mat)) return
     }
     if (original.ore <= maxOreRequirement)
-      yield* recuse(
-        structuredClone(materials),
-        structuredClone(robots),
-        time - 1
-      )
+      yield* recurse(materials, robots, time - 1)
   })
 
   let n = 0
-  for (const _ of recuse()) {
+  for (const _ of recurse()) {
     if (n % yieldEvery === 0) yield _
     n++
   }
-  recuse()
+  recurse()
 
   yield { geode, quality: geode * blueprint.id }
 }
