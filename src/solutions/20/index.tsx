@@ -14,8 +14,7 @@ const mix = (arr: number[], decryptionKey = 1, times = 1) => {
       const index = mixed.indexOf(item)
       removeAt(mixed, index)
       const newIndex = mod(index + item.n, mixed.length)
-      if (newIndex === 0) mixed.push(item)
-      else insertAt(mixed, newIndex, item)
+      insertAt(mixed, newIndex, item)
     }
   })
   const zero = mixed.findIndex(({ n }) => n === 0)
