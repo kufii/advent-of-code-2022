@@ -30,7 +30,8 @@ export const Part1 = () => {
 
   return (
     <p>
-      Hello World <Answer>{result}</Answer>
+      The sum of the three numbers that form the grove coordinates is{' '}
+      <Answer>{result}</Answer>.
     </p>
   )
 }
@@ -41,7 +42,9 @@ export const Part2 = () => {
 
   return (
     <p>
-      Hello World <Answer>{result}</Answer>
+      After applying the decryption key and mixing 10 times, the sum of the
+      three numbers that form the grove coordinates is <Answer>{result}</Answer>
+      .
     </p>
   )
 }
