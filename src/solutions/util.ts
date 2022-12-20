@@ -385,3 +385,10 @@ export const groupArr = <T>(arr: T[], n: number) =>
 export const gcd = (a: number, b: number): number => (a ? gcd(b % a, a) : b)
 
 export const lcm = (a: number, b: number) => (a * b) / gcd(a, b)
+
+export const mod = (n: number, m: number) => ((n % m) + m) % m
+
+export const removeAt = (arr: any[], i: number) => arr.splice(i, 1)
+
+export const insertAt = <T>(arr: T[], i: number, item: T) =>
+  arr.splice(i, 0, item)
