@@ -69,7 +69,8 @@ export const Part2 = () => {
   const monkeys = parseInput()
   let result
   let factor = 1000000000000
-  const increases = getRoot(monkeys, 0) < getRoot(monkeys, 1)
+  const increases =
+    (getRoot(monkeys, 0) as number[])[0] < (getRoot(monkeys, 1) as number[])[0]
   for (let n = factor; n < Infinity; n += factor) {
     const [left, right] = getRoot(monkeys, n) as [number, number]
     if (left === right) {
