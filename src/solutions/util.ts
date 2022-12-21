@@ -350,13 +350,10 @@ export const nestedLoop = function* (
   }
 }
 
-export const memoize = <
-  TParams extends any[],
-  T extends (...args: TParams) => any
->(
-  fn: T
-) => {
-  const cache = new Map<string, ReturnType<T>>()
+export const memoize = <TParams extends any[], TReturns>(
+  fn: (...args: TParams) => TReturns
+): ((...args: TParams) => TReturns) => {
+  const cache = new Map<string, TReturns>()
   return (...args: TParams) => {
     const key = JSON.stringify(serialize(args))
     if (cache.has(key)) return cache.get(key)!
