@@ -1,18 +1,34 @@
-import { h } from 'preact'
-import { Answer } from '/components'
+import { h, Fragment } from 'preact'
+import { Answer, Visualization } from '/components'
 import input from './input'
-import { findLastIndex, min, nTimes, parse2dArray, Point, range } from '../util'
+import {
+  findLastIndex,
+  min,
+  output2dArray,
+  parse2dArray,
+  Point,
+  range
+} from '../util'
+import { useStore } from '/store'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
+import { setIntervalImmediate } from '/shared/web-utilities/util'
+import structuredClone from '@ungap/structured-clone'
+import styles from './style.css'
 
 enum Dir {
-  Up,
-  Down,
-  Left,
-  Right
+  Up = '^',
+  Down = 'v',
+  Left = '<',
+  Right = '>'
 }
 
 enum Turn {
   Left = 'L',
   Right = 'R'
+}
+
+interface Pos extends Point {
+  dir: Dir
 }
 
 const parseInput = () => {
@@ -56,39 +72,41 @@ const scores = {
   [Dir.Up]: 3
 }
 
-const navigate = (
+const getScore = (x: number, y: number, dir: Dir) =>
+  1000 * (y + 1) + 4 * (x + 1) + scores[dir]
+
+const navigate = function* (
   grid: string[][],
   dirs: string,
-  warpFn: (
-    grid: string[][],
-    { x, y, dir }: Point & { dir: Dir }
-  ) => Point & { dir?: Dir }
-) => {
+  warpFn: (grid: string[][], pos: Pos) => Pos
+) {
   let y = 0
   let x = grid[0].findIndex((c) => c !== ' ' && c !== '#')
   let dir = Dir.Right
+  yield { x, y, dir }
   while (dirs) {
     const num = dirs.match(/^\d+/u)?.[0]
     if (num) {
       dirs = dirs.slice(num.length)
-      nTimes(Number(num), () => {
+      for (let n = 0; n < Number(num); n++) {
         const { dx, dy } = deltas[dir]
         let nextX = x + dx
         let nextY = y + dy
-        let nextDir = dir
+        let nextDir: Dir = dir
         let cell = grid[nextY]?.[nextX] ?? ' '
         if (cell === ' ') {
           const warp = warpFn(grid, { x, y, dir })
           nextX = warp.x
           nextY = warp.y
-          if (warp.dir !== undefined) nextDir = warp.dir
+          if (warp.dir != null) nextDir = warp.dir
         }
         cell = grid[nextY]?.[nextX] ?? ' '
-        if (cell === '#') return
+        if (cell === '#') break
         x = nextX
         y = nextY
         dir = nextDir
-      })
+        yield { x, y, dir }
+      }
     }
     const turn = dirs.match(/^[RL]/u)?.[0]
     if (turn) {
@@ -96,7 +114,6 @@ const navigate = (
       dir = turning[dir][turn as Turn]
     }
   }
-  return 1000 * (y + 1) + 4 * (x + 1) + scores[dir]
 }
 
 const cubeFaces: Record<
@@ -135,6 +152,7 @@ const getCubeFaceSize = (arr: string[][]) =>
   arr.map((line) => line.join('').trim().length).reduce(min)
 
 const createCube = (arr: string[][], faceSize: number) => {
+  arr = structuredClone(arr)
   const startX = arr[0].findIndex((c) => c !== ' ')
   for (let y = 0; y < faceSize; y++) {
     for (let x = startX; x < arr[y].length; x++) {
@@ -174,9 +192,52 @@ const getFace = (cube: string[][], face: string, faceSize: number) => {
   return { x, y }
 }
 
+const useSolution = (
+  grid: string[][],
+  dirs: string,
+  warpFn: (grid: string[][], pos: Pos) => Pos
+) => {
+  const showVisualization = useStore((s) => s.showVisualization)
+  const [score, setScore] = useState<number>()
+  const [output, setOutput] = useState<string>()
+
+  useEffect(() => {
+    setScore(undefined)
+    setOutput(undefined)
+    const output = parseInput().grid
+    const gen = navigate(grid, dirs, warpFn)
+    let lastPos: Pos
+    let id: NodeJS.Timeout
+
+    const tick = () => {
+      const { value, done } = gen.next()
+      if (value) {
+        lastPos = value
+        if (showVisualization) {
+          output[value.y][value.x] = value.dir
+          setOutput(output2dArray(output))
+        }
+      }
+      if (done) {
+        setScore(getScore(lastPos!.x, lastPos!.y, lastPos!.dir))
+        clearInterval(id)
+        return false
+      }
+      return true
+    }
+
+    if (showVisualization) id = setIntervalImmediate(tick, 50)
+    else while (tick()) {}
+
+    return () => clearInterval(id)
+  }, [showVisualization, grid, dirs, warpFn])
+
+  return { score, output }
+}
+
 export const Part1 = () => {
-  const { grid, dirs } = parseInput()
-  const score = navigate(grid, dirs, (grid, { x, y, dir }) => {
+  const { grid, dirs } = useRef(parseInput()).current
+  const warpFn = useCallback((grid: string[][], { x, y, dir }: Pos) => {
     if (dir === Dir.Right) {
       x = grid[y].findIndex((c) => c !== ' ')
     } else if (dir === Dir.Left) {
@@ -187,50 +248,67 @@ export const Part1 = () => {
       y = findLastIndex(grid, (row) => (row[x] ?? ' ') !== ' ')
     }
     return { x, y, dir }
-  })
+  }, [])
+  const { score, output } = useSolution(grid, dirs, warpFn)
+
   return (
-    <p>
-      Hello World <Answer>{score}</Answer>
-    </p>
+    <>
+      {score && (
+        <p>
+          The final password is <Answer>{score}</Answer>.
+        </p>
+      )}
+      <Visualization class={styles.Visualization}>{output}</Visualization>
+    </>
   )
 }
 
 export const Part2 = () => {
-  const { grid, dirs } = parseInput()
-  const faceSize = getCubeFaceSize(grid)
-  const cube = createCube(grid, faceSize)
-  const score = navigate(cube, dirs, (cube, { x, y, dir: oldDir }) => {
-    const oldFace = cube[y][x]
-    const { face, dir, flip } = cubeFaces[oldFace][oldDir]!
-    const posOldFace = getFace(cube, oldFace, faceSize)!
-    const posNewFace = getFace(cube, face, faceSize)!
-    let offset
-    if (oldDir === Dir.Up || oldDir === Dir.Down) {
-      offset = x - posOldFace.x
-    } else {
-      offset = y - posOldFace.y
-    }
-    if (flip) offset = faceSize - 1 - offset
-    const result = {
-      dir,
-      ...{
-        [Dir.Up]: {
-          x: posNewFace.x + offset,
-          y: posNewFace.y + faceSize - 1
-        },
-        [Dir.Down]: { x: posNewFace.x + offset, y: posNewFace.y },
-        [Dir.Left]: {
-          x: posNewFace.x + faceSize - 1,
-          y: posNewFace.y + offset
-        },
-        [Dir.Right]: { x: posNewFace.x, y: posNewFace.y + offset }
-      }[dir]
-    }
-    return result
-  })
+  const { grid, dirs } = useRef(parseInput()).current
+  const faceSize = useRef(getCubeFaceSize(grid)).current
+  const cube = useRef(createCube(grid, faceSize)).current
+  const warpFn = useCallback(
+    (cube: string[][], { x, y, dir: oldDir }: Pos) => {
+      const oldFace = cube[y][x]
+      const { face, dir, flip } = cubeFaces[oldFace][oldDir]!
+      const posOldFace = getFace(cube, oldFace, faceSize)!
+      const posNewFace = getFace(cube, face, faceSize)!
+      let offset
+      if (oldDir === Dir.Up || oldDir === Dir.Down) {
+        offset = x - posOldFace.x
+      } else {
+        offset = y - posOldFace.y
+      }
+      if (flip) offset = faceSize - 1 - offset
+      const result = {
+        dir,
+        ...{
+          [Dir.Up]: {
+            x: posNewFace.x + offset,
+            y: posNewFace.y + faceSize - 1
+          },
+          [Dir.Down]: { x: posNewFace.x + offset, y: posNewFace.y },
+          [Dir.Left]: {
+            x: posNewFace.x + faceSize - 1,
+            y: posNewFace.y + offset
+          },
+          [Dir.Right]: { x: posNewFace.x, y: posNewFace.y + offset }
+        }[dir]
+      }
+      return result
+    },
+    [faceSize]
+  )
+  const { score, output } = useSolution(cube, dirs, warpFn)
   return (
-    <p>
-      Hello World <Answer>{score}</Answer>
-    </p>
+    <>
+      {score && (
+        <p>
+          The final password when navigating on the cube is{' '}
+          <Answer>{score}</Answer>.
+        </p>
+      )}
+      <Visualization class={styles.Visualization}>{output}</Visualization>
+    </>
   )
 }
