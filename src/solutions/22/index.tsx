@@ -1,7 +1,19 @@
 import { h } from 'preact'
 import { Answer } from '/components'
 import input from './input'
-import { min, nTimes, output2dArray, parse2dArray } from '../util'
+import { findLastIndex, min, nTimes, parse2dArray, Point, range } from '../util'
+
+enum Dir {
+  Up,
+  Down,
+  Left,
+  Right
+}
+
+enum Turn {
+  Left = 'L',
+  Right = 'R'
+}
 
 const parseInput = () => {
   const [block1, block2] = input.split('\n\n')
@@ -12,122 +24,117 @@ const parseInput = () => {
 }
 
 const deltas = {
-  U: { dx: 0, dy: -1 },
-  D: { dx: 0, dy: 1 },
-  L: { dx: -1, dy: 0 },
-  R: { dx: 1, dy: 0 }
+  [Dir.Up]: { dx: 0, dy: -1 },
+  [Dir.Down]: { dx: 0, dy: 1 },
+  [Dir.Left]: { dx: -1, dy: 0 },
+  [Dir.Right]: { dx: 1, dy: 0 }
 }
 
 const turning = {
-  U: {
-    R: 'R',
-    L: 'L'
+  [Dir.Up]: {
+    [Turn.Right]: Dir.Right,
+    [Turn.Left]: Dir.Left
   },
-  D: {
-    R: 'L',
-    L: 'R'
+  [Dir.Down]: {
+    [Turn.Right]: Dir.Left,
+    [Turn.Left]: Dir.Right
   },
-  L: {
-    R: 'U',
-    L: 'D'
+  [Dir.Left]: {
+    [Turn.Right]: Dir.Up,
+    [Turn.Left]: Dir.Down
   },
-  R: {
-    R: 'D',
-    L: 'U'
+  [Dir.Right]: {
+    [Turn.Right]: Dir.Down,
+    [Turn.Left]: Dir.Up
   }
 }
+
 const scores = {
-  R: 0,
-  D: 1,
-  L: 2,
-  U: 3
+  [Dir.Right]: 0,
+  [Dir.Down]: 1,
+  [Dir.Left]: 2,
+  [Dir.Up]: 3
 }
 
-export const Part1 = () => {
-  let { grid, dirs } = parseInput()
-  const draw = grid.slice().map((line) => line.slice())
+const navigate = (
+  grid: string[][],
+  dirs: string,
+  warpFn: (
+    grid: string[][],
+    { x, y, dir }: Point & { dir: Dir }
+  ) => Point & { dir?: Dir }
+) => {
   let y = 0
-  let x = grid[0].findIndex((c) => c === '.')
-  let dir = 'R'
-  draw[y][x] = dir
+  let x = grid[0].findIndex((c) => c !== ' ' && c !== '#')
+  let dir = Dir.Right
   while (dirs) {
     const num = dirs.match(/^\d+/u)?.[0]
     if (num) {
       dirs = dirs.slice(num.length)
-      const { dx, dy } = deltas[dir]
       nTimes(Number(num), () => {
+        const { dx, dy } = deltas[dir]
         let nextX = x + dx
         let nextY = y + dy
+        let nextDir = dir
         let cell = grid[nextY]?.[nextX] ?? ' '
         if (cell === ' ') {
-          if (dx > 0) {
-            nextX = grid[nextY].findIndex((c) => c !== ' ')
-          } else if (dx < 0) {
-            nextX = grid[nextY].length - 1
-          } else if (dy > 0) {
-            nextY = grid.findIndex((row) => row[nextX] !== ' ')
-          } else if (dy < 0) {
-            for (let y = grid.length - 1; y >= 0; y--) {
-              if ((grid[y][nextX] ?? ' ') !== ' ') {
-                nextY = y
-                break
-              }
-            }
-          }
+          const warp = warpFn(grid, { x, y, dir })
+          nextX = warp.x
+          nextY = warp.y
+          if (warp.dir !== undefined) nextDir = warp.dir
         }
         cell = grid[nextY]?.[nextX] ?? ' '
         if (cell === '#') return
         x = nextX
         y = nextY
-        draw[y][x] = dir
+        dir = nextDir
       })
     }
-    const turn = dirs.match(/[RL]/u)?.[0]
+    const turn = dirs.match(/^[RL]/u)?.[0]
     if (turn) {
       dirs = dirs.slice(turn.length)
-      dir = turning[dir][turn]
+      dir = turning[dir][turn as Turn]
     }
   }
-  console.log(output2dArray(draw))
-  const score = 1000 * (y + 1) + 4 * (x + 1) + scores[dir]
-  return (
-    <p>
-      Hello World <Answer>{score}</Answer>
-    </p>
-  )
+  return 1000 * (y + 1) + 4 * (x + 1) + scores[dir]
 }
 
-const cubeFaces = {
+const cubeFaces: Record<
+  string,
+  Partial<Record<Dir, { face: string; dir: Dir; flip?: boolean }>>
+> = {
   1: {
-    U: { face: '6', dir: 'R' },
-    L: { face: '5', dir: 'R', flip: true }
+    [Dir.Up]: { face: '6', dir: Dir.Right },
+    [Dir.Left]: { face: '5', dir: Dir.Right, flip: true }
   },
   2: {
-    U: { face: '6', dir: 'U' },
-    R: { face: '4', dir: 'L', flip: true },
-    D: { face: '3', dir: 'L' }
+    [Dir.Up]: { face: '6', dir: Dir.Up },
+    [Dir.Right]: { face: '4', dir: Dir.Left, flip: true },
+    [Dir.Down]: { face: '3', dir: Dir.Left }
   },
   3: {
-    L: { face: '5', dir: 'D' },
-    R: { face: '2', dir: 'U' }
+    [Dir.Left]: { face: '5', dir: Dir.Down },
+    [Dir.Right]: { face: '2', dir: Dir.Up }
   },
   4: {
-    R: { face: '2', dir: 'L', flip: true },
-    D: { face: '6', dir: 'L' }
+    [Dir.Right]: { face: '2', dir: Dir.Left, flip: true },
+    [Dir.Down]: { face: '6', dir: Dir.Left }
   },
   5: {
-    U: { face: '3', dir: 'R' },
-    L: { face: '1', dir: 'R', flip: true }
+    [Dir.Up]: { face: '3', dir: Dir.Right },
+    [Dir.Left]: { face: '1', dir: Dir.Right, flip: true }
   },
   6: {
-    L: { face: '1', dir: 'D' },
-    R: { face: '4', dir: 'U' },
-    D: { face: '2', dir: 'D' }
+    [Dir.Left]: { face: '1', dir: Dir.Down },
+    [Dir.Right]: { face: '4', dir: Dir.Up },
+    [Dir.Down]: { face: '2', dir: Dir.Down }
   }
 }
 
-const createCube = (arr: string[][]) => {
-  const faceSize = arr.map((line) => line.join('').trim().length).reduce(min)
+const getCubeFaceSize = (arr: string[][]) =>
+  arr.map((line) => line.join('').trim().length).reduce(min)
+
+const createCube = (arr: string[][], faceSize: number) => {
   const startX = arr[0].findIndex((c) => c !== ' ')
   for (let y = 0; y < faceSize; y++) {
     for (let x = startX; x < arr[y].length; x++) {
@@ -157,83 +164,70 @@ const createCube = (arr: string[][]) => {
 }
 
 const getFace = (cube: string[][], face: string, faceSize: number) => {
-  const faceX = cube
+  const x = cube
     .map((line) => line.findIndex((c) => c === face))
     .filter((i) => i >= 0)
     .reduce(min)
-  for (let y = 0; y < cube.length; y++) {
-    for (let x = faceX; x < faceX + faceSize; x++) {
-      if (cube[y][x] === face) {
-        return { x: faceX, y }
-      }
+  const y = range(x, x + faceSize - 1)
+    .map((x) => cube.findIndex((line) => line[x] === face))
+    .reduce(min)
+  return { x, y }
+}
+
+export const Part1 = () => {
+  const { grid, dirs } = parseInput()
+  const score = navigate(grid, dirs, (grid, { x, y, dir }) => {
+    if (dir === Dir.Right) {
+      x = grid[y].findIndex((c) => c !== ' ')
+    } else if (dir === Dir.Left) {
+      x = findLastIndex(grid[y], (c) => c !== ' ')
+    } else if (dir === Dir.Down) {
+      y = grid.findIndex((row) => (row[x] ?? ' ') !== ' ')
+    } else if (dir === Dir.Up) {
+      y = findLastIndex(grid, (row) => (row[x] ?? ' ') !== ' ')
     }
-  }
+    return { x, y, dir }
+  })
+  return (
+    <p>
+      Hello World <Answer>{score}</Answer>
+    </p>
+  )
 }
 
 export const Part2 = () => {
-  let { grid: grid2, dirs } = parseInput()
-  // dirs = dirs.slice(0, 50)
-  const faceSize = grid2.map((line) => line.join('').trim().length).reduce(min)
-  let y = 0
-  let x = grid2[0].findIndex((c) => c === '.')
-  const cube = createCube(grid2)
-  const draw = cube.slice().map((line) => line.slice())
-  let dir = 'R'
-  draw[y][x] = dir
-  while (dirs) {
-    const num = dirs.match(/^\d+/u)?.[0]
-    if (num) {
-      dirs = dirs.slice(num.length)
-      nTimes(Number(num), () => {
-        const { dx, dy } = deltas[dir]
-        let nextX = x + dx
-        let nextY = y + dy
-        let cell = cube[nextY]?.[nextX] ?? ' '
-        let nextDir = dir
-        if (cell === ' ') {
-          const currentFace = cube[y][x]
-          const { face, dir: newDir, flip } = cubeFaces[currentFace][dir]
-          const posOldFace = getFace(cube, currentFace, faceSize)!
-          const posNewFace = getFace(cube, face, faceSize)!
-          let offset
-          if (dir === 'U' || dir === 'D') {
-            offset = x - posOldFace.x
-          } else {
-            offset = y - posOldFace.y
-          }
-          if (flip) offset = faceSize - 1 - offset
-          if (newDir === 'U') {
-            nextY = posNewFace.y + faceSize - 1
-            nextX = posNewFace.x + offset
-          } else if (newDir === 'D') {
-            nextY = posNewFace.y
-            nextX = posNewFace.x + offset
-          } else if (newDir === 'L') {
-            nextY = posNewFace.y + offset
-            nextX = posNewFace.x + faceSize - 1
-          } else if (newDir === 'R') {
-            nextY = posNewFace.y + offset
-            nextX = posNewFace.x
-          }
-          nextDir = newDir
-          console.log(x, y, dir, currentFace, nextX, nextY, nextDir, face)
-        }
-        cell = cube[nextY]?.[nextX] ?? ' '
-        if (cell === '#') return
-        x = nextX
-        y = nextY
-        dir = nextDir
-        draw[y][x] = dir
-      })
+  const { grid, dirs } = parseInput()
+  const faceSize = getCubeFaceSize(grid)
+  const cube = createCube(grid, faceSize)
+  const score = navigate(cube, dirs, (cube, { x, y, dir: oldDir }) => {
+    const oldFace = cube[y][x]
+    const { face, dir, flip } = cubeFaces[oldFace][oldDir]!
+    const posOldFace = getFace(cube, oldFace, faceSize)!
+    const posNewFace = getFace(cube, face, faceSize)!
+    let offset
+    if (oldDir === Dir.Up || oldDir === Dir.Down) {
+      offset = x - posOldFace.x
+    } else {
+      offset = y - posOldFace.y
     }
-    const turn = dirs.match(/[RL]/u)?.[0]
-    if (turn) {
-      dirs = dirs.slice(turn.length)
-      dir = turning[dir][turn]
+    if (flip) offset = faceSize - 1 - offset
+    const result = {
+      dir,
+      ...{
+        [Dir.Up]: {
+          x: posNewFace.x + offset,
+          y: posNewFace.y + faceSize - 1
+        },
+        [Dir.Down]: { x: posNewFace.x + offset, y: posNewFace.y },
+        [Dir.Left]: {
+          x: posNewFace.x + faceSize - 1,
+          y: posNewFace.y + offset
+        },
+        [Dir.Right]: { x: posNewFace.x, y: posNewFace.y + offset }
+      }[dir]
     }
-  }
-  console.log(output2dArray(draw))
-  const score = 1000 * (y + 1) + 4 * (x + 1) + scores[dir]
+    return result
+  })
   return (
     <p>
       Hello World <Answer>{score}</Answer>

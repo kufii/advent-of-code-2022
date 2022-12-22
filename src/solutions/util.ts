@@ -389,3 +389,14 @@ export const removeAt = (arr: any[], i: number) => arr.splice(i, 1)
 
 export const insertAt = <T>(arr: T[], i: number, item: T) =>
   arr.splice(i, 0, item)
+
+export const findLastIndex = <T>(
+  arr: T[],
+  cb: (value: T, i: number) => boolean
+) =>
+  arr.length -
+  1 -
+  arr
+    .slice()
+    .reverse()
+    .findIndex((value, i) => cb(value, arr.length - 1 - i))
