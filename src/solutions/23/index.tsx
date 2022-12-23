@@ -8,6 +8,7 @@ import {
   min,
   output2dArray,
   parse2dArray,
+  Point,
   truthy
 } from '../util'
 import { useStore } from '/store'
@@ -20,56 +21,39 @@ const moveElves = function* (
   grid: InfiniteGrid<string>,
   times: number,
   yieldEvery?: number
-): Generator<InfiniteGrid<string> | number> {
+): Generator<InfiniteGrid<string>, number | undefined> {
+  const canMove = ({ x, y }: Point) => grid.get(x, y) === '.'
+  const elves = new Set<Point>(grid.cells.filter((c) => c.value === '#'))
+
   for (let n = 0; n < times; n++) {
-    const elves = grid.cells.filter((c) => c.value === '#')
-    const proposedMoves = elves
+    const proposedMoves = [...elves.values()]
       .map((from) => {
-        if (getAdjacent(from, true).every(({ x, y }) => grid.get(x, y) === '.'))
-          return null
+        const adjacent = getAdjacent(from, true)
+        if (adjacent.every(canMove)) return null
 
         const { x, y } = from
-        const canMove = (dx: number, dy: number) =>
-          grid.get(x + dx, y + dy) === '.'
-
         const checks = [
-          [
-            [-1, -1],
-            [0, -1],
-            [1, -1]
-          ].every(([dx, dy]) => canMove(dx, dy)) && {
-            from,
-            to: { x, y: y - 1 }
+          adjacent.filter((p) => p.y === y - 1).every(canMove) && {
+            x,
+            y: y - 1
           },
-          [
-            [-1, 1],
-            [0, 1],
-            [1, 1]
-          ].every(([dx, dy]) => canMove(dx, dy)) && {
-            from,
-            to: { x, y: y + 1 }
+          adjacent.filter((p) => p.y === y + 1).every(canMove) && {
+            x,
+            y: y + 1
           },
-          [
-            [-1, -1],
-            [-1, 0],
-            [-1, 1]
-          ].every(([dx, dy]) => canMove(dx, dy)) && {
-            from,
-            to: { x: x - 1, y }
+          adjacent.filter((p) => p.x === x - 1).every(canMove) && {
+            x: x - 1,
+            y
           },
-          [
-            [1, -1],
-            [1, 0],
-            [1, 1]
-          ].every(([dx, dy]) => canMove(dx, dy)) && {
-            from,
-            to: { x: x + 1, y }
+          adjacent.filter((p) => p.x === x + 1).every(canMove) && {
+            x: x + 1,
+            y
           }
         ]
 
         for (let i = n; i < n + checks.length; i++) {
-          const check = checks[i % checks.length]
-          if (check) return check
+          const to = checks[i % checks.length]
+          if (to) return { from, to }
         }
       })
       .filter(truthy)
@@ -82,10 +66,14 @@ const moveElves = function* (
             move.to.y === move2.to.y
         )
     )
-    if (!validMoves.length) return yield n + 1
+    if (!validMoves.length) {
+      return n + 1
+    }
     validMoves.forEach(({ from, to }) => {
       grid.set(from.x, from.y, '.')
       grid.set(to.x, to.y, '#')
+      elves.delete(from)
+      elves.add(to)
     })
     if (!yieldEvery || n % yieldEvery === 0) yield grid
   }
@@ -93,12 +81,16 @@ const moveElves = function* (
 
 const getEmptyGround = (grid: InfiniteGrid<string>) => {
   const cells = grid.cells.filter((c) => c.value === '#')
-  const minX = cells.map((c) => c.x).reduce(min)
-  const minY = cells.map((c) => c.y).reduce(min)
-  const maxX = cells.map((c) => c.x).reduce(max)
-  const maxY = cells.map((c) => c.y).reduce(max)
+  const minElf = {
+    x: cells.map((c) => c.x).reduce(min),
+    y: cells.map((c) => c.y).reduce(min)
+  }
+  const maxElf = {
+    x: cells.map((c) => c.x).reduce(max),
+    y: cells.map((c) => c.y).reduce(max)
+  }
   return grid
-    .toArray({ x: minX, y: minY }, { x: maxX, y: maxY })
+    .toArray(minElf, maxElf)
     .flat()
     .filter((c) => c === '.').length
 }
