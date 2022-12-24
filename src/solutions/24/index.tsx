@@ -39,7 +39,8 @@ const traverse = (
   arr: string[][],
   from: Point,
   to: Point,
-  fetchSnacks: boolean
+  fetchSnacks: boolean,
+  visualize = false
 ) => {
   const grid = new InfiniteGrid('#', arr)
   const cells = grid.cells
@@ -51,21 +52,19 @@ const traverse = (
   const blizzardsLcm = lcm(blizzardsXCycle, blizzardsYCycle)
 
   const getBlizzardsX = memoize((n: number) =>
-    blizzardsX.map(({ x, y, value }) => {
-      const { dx } = deltas[value]
-      x += dx * n
-      x = mod(x - 1, blizzardsXCycle) + 1
-      return { x, y, value }
-    })
+    blizzardsX.map(({ x, y, value }) => ({
+      x: mod(x + deltas[value].dx * n - 1, blizzardsXCycle) + 1,
+      y,
+      value
+    }))
   )
 
   const getBlizzardsY = memoize((n: number) =>
-    blizzardsY.map(({ x, y, value }) => {
-      const { dy } = deltas[value]
-      y += dy * n
-      y = mod(y - 1, blizzardsYCycle) + 1
-      return { x, y, value }
-    })
+    blizzardsY.map(({ x, y, value }) => ({
+      x,
+      y: mod(y + deltas[value].dy * n - 1, blizzardsYCycle) + 1,
+      value
+    }))
   )
 
   const getBlizzards = memoize((n: number) => [
@@ -127,7 +126,7 @@ const traverse = (
     return frames
   }
 
-  return { time, path: fullPath, frames: getVisualization() }
+  return { time, path: fullPath, frames: visualize ? getVisualization() : null }
 }
 
 const useSolution = (fetchSnacks = false) => {
@@ -149,7 +148,7 @@ const useSolution = (fetchSnacks = false) => {
         const { time, frames } = traverse(arr, start, end, fetchSnacks)
         setResult(time)
 
-        if (showVisualization) {
+        if (showVisualization && frames) {
           id = setIntervalImmediate(() => {
             setOutput(frames.shift())
             if (!frames.length) clearInterval(id)
