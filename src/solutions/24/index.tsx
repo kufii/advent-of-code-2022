@@ -18,7 +18,7 @@ import {
 import { useEffect, useState } from 'preact/hooks'
 import { useStore } from '/store'
 import { setIntervalImmediate } from '/shared/web-utilities/util'
-import { useStateCallback } from '/shared/web-utilities/hooks/useStateCallback'
+import { useRerender } from '/shared/web-utilities/hooks/useRerender'
 
 const parseInput = () => parse2dArray(input, String)
 
@@ -78,8 +78,7 @@ const traverse = (
   const getNeighbors = (end: Point) =>
     memoize((key: string) => {
       let { x, y, z } = keyToPoint3(key)
-      z++
-      z %= blizzardsLcm
+      z = (z + 1) % blizzardsLcm
       const blizzards = getBlizzards(z)
       return [...getAdjacent({ x, y }), { x, y }]
         .filter(
@@ -134,35 +133,32 @@ const useSolution = (fetchSnacks = false) => {
   const showVisualization = useStore((s) => s.showVisualization)
   const [result, setResult] = useState<number>()
   const [output, setOutput] = useState<(string | JSX.Element)[][]>()
-  const rerender = useStateCallback(0)[1]
+  const rerender = useRerender()
 
   useEffect(() => {
     setOutput(undefined)
     setResult(undefined)
 
     let id: NodeJS.Timeout
-    rerender(
-      (n) => n + 1,
-      () => {
-        const arr = parseInput()
-        const { start, end } = getStartAndEnd(arr)
-        const { time, frames } = traverse(
-          arr,
-          start,
-          end,
-          fetchSnacks,
-          showVisualization
-        )
-        setResult(time)
+    rerender(() => {
+      const arr = parseInput()
+      const { start, end } = getStartAndEnd(arr)
+      const { time, frames } = traverse(
+        arr,
+        start,
+        end,
+        fetchSnacks,
+        showVisualization
+      )
+      setResult(time)
 
-        if (showVisualization && frames) {
-          id = setIntervalImmediate(() => {
-            setOutput(frames.shift())
-            if (!frames.length) clearInterval(id)
-          }, 50)
-        }
+      if (showVisualization && frames) {
+        id = setIntervalImmediate(() => {
+          setOutput(frames.shift())
+          if (!frames.length) clearInterval(id)
+        }, 50)
       }
-    )
+    })
 
     return () => clearInterval(id)
   }, [rerender, showVisualization, fetchSnacks])

@@ -1,7 +1,8 @@
-import { SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 type Callback<T> = (value?: T) => void
 type DispatchWithCallback<T> = (value: T, callback?: Callback<T>) => void
+type SetStateAction<T> = T | ((prevState: T) => T)
 
 export const useStateCallback = <T>(
   initialState: T | (() => T)
