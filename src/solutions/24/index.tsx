@@ -8,6 +8,7 @@ import {
   InfiniteGrid,
   keyToPoint,
   keyToPoint3,
+  lcm,
   memoize,
   mod,
   parse2dArray,
@@ -41,48 +42,55 @@ const traverse = (
   fetchSnacks: boolean
 ) => {
   const grid = new InfiniteGrid('#', arr)
-  const blizzards = grid.cells
-    .filter((c) => ['<', '>', 'v', '^'].includes(c.value))
-    .map((pos) => ({
-      ...pos,
-      range: {
-        x: {
-          min: arr[pos.y].findIndex((c) => c !== '#'),
-          max: findLastIndex(arr[pos.y], (c) => c !== '#')
-        },
-        y: {
-          min: arr.findIndex((line) => line[pos.x] !== '#'),
-          max: findLastIndex(arr, (line) => line[pos.x] !== '#')
-        }
-      }
-    }))
-  const getBlizzards = memoize((n: number) =>
-    blizzards.map(({ x, y, value, range }) => {
-      const { dx, dy } = deltas[value]
+  const cells = grid.cells
+
+  const blizzardsX = cells.filter((c) => ['<', '>'].includes(c.value))
+  const blizzardsY = cells.filter((c) => ['v', '^'].includes(c.value))
+  const blizzardsXCycle = arr[0].length - 2
+  const blizzardsYCycle = arr.length - 2
+  const blizzardsLcm = lcm(blizzardsXCycle, blizzardsYCycle)
+
+  const getBlizzardsX = memoize((n: number) =>
+    blizzardsX.map(({ x, y, value }) => {
+      const { dx } = deltas[value]
       x += dx * n
-      y += dy * n
-      x = mod(x - range.x.min, range.x.max - range.x.min + 1) + range.x.min
-      y = mod(y - range.y.min, range.y.max - range.y.min + 1) + range.y.min
+      x = mod(x - 1, blizzardsXCycle) + 1
       return { x, y, value }
     })
   )
 
-  const getNeighbors = (end: Point) => (key: string) => {
-    let { x, y, z } = keyToPoint3(key)
-    z++
-    const blizzards = getBlizzards(z)
-    return [...getAdjacent({ x, y }), { x, y }]
-      .filter(
-        ({ x, y }) =>
-          grid.get(x, y) !== '#' &&
-          !blizzards.some((b) => b.x === x && b.y === y)
-      )
-      .map((p) =>
-        p.x === end.x && p.y === end.y
-          ? pointToKey(p)
-          : point3ToKey({ x: p.x, y: p.y, z })
-      )
-  }
+  const getBlizzardsY = memoize((n: number) =>
+    blizzardsY.map(({ x, y, value }) => {
+      const { dy } = deltas[value]
+      y += dy * n
+      y = mod(y - 1, blizzardsYCycle) + 1
+      return { x, y, value }
+    })
+  )
+
+  const getBlizzards = memoize((n: number) => [
+    ...getBlizzardsX(n % blizzardsXCycle),
+    ...getBlizzardsY(n % blizzardsYCycle)
+  ])
+
+  const getNeighbors = (end: Point) =>
+    memoize((key: string) => {
+      let { x, y, z } = keyToPoint3(key)
+      z++
+      z %= blizzardsLcm
+      const blizzards = getBlizzards(z)
+      return [...getAdjacent({ x, y }), { x, y }]
+        .filter(
+          ({ x, y }) =>
+            grid.get(x, y) !== '#' &&
+            !blizzards.some((b) => b.x === x && b.y === y)
+        )
+        .map((p) =>
+          p.x === end.x && p.y === end.y
+            ? pointToKey(p)
+            : point3ToKey({ x: p.x, y: p.y, z })
+        )
+    })
 
   let time = 0
   const fullPath: string[] = []
@@ -111,7 +119,7 @@ const traverse = (
     for (let i = 0; i < fullPath.length; i++) {
       const { x, y } = keyToPoint(fullPath[i])
       const newGrid = grid.clone()
-      const blizzards = getBlizzards(i)
+      const blizzards = getBlizzards(i % blizzardsLcm)
       blizzards.forEach(({ x, y, value }) => newGrid.set(x, y, value))
       newGrid.set(x, y, <strong>E</strong>)
       frames.push(newGrid.toArray())
