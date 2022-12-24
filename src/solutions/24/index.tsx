@@ -3,7 +3,6 @@ import { Answer, Array2d, Visualization } from '/components'
 import input from './input'
 import {
   dijkstra,
-  findLastIndex,
   getAdjacent,
   InfiniteGrid,
   keyToPoint,
