@@ -144,7 +144,13 @@ const useSolution = (fetchSnacks = false) => {
       () => {
         const arr = parseInput()
         const { start, end } = getStartAndEnd(arr)
-        const { time, frames } = traverse(arr, start, end, fetchSnacks)
+        const { time, frames } = traverse(
+          arr,
+          start,
+          end,
+          fetchSnacks,
+          showVisualization
+        )
         setResult(time)
 
         if (showVisualization && frames) {
