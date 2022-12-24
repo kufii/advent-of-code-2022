@@ -1,10 +1,10 @@
 import { RefObject } from 'preact'
 import { useEffect } from 'preact/hooks'
-import { usePropRef } from './use-prop-ref'
+import { usePropRef } from './usePropRef'
 import { debounce, throttle } from '/shared/web-utilities/util'
 
 /** not passing ref will fallback on window */
-export const useDOMEvent = <T extends keyof WindowEventMap>({
+export const useDomEvent = <T extends keyof WindowEventMap>({
   ref,
   type,
   handler,
@@ -24,7 +24,6 @@ export const useDOMEvent = <T extends keyof WindowEventMap>({
   // bind event using given options, restart if core configs change
   useEffect(() => {
     if (disabled) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let eventHandler = (e: any) => handlerRef.current(e)
     const id = { current: undefined }
     eventHandler = db
@@ -45,7 +44,7 @@ export const useGlobalEvent = <T extends keyof WindowEventMap>(
   type: T,
   handler: (e: WindowEventMap[T]) => void,
   opts?: Omit<
-    Omit<Omit<Parameters<typeof useDOMEvent>[0], 'type'>, 'handler'>,
+    Omit<Omit<Parameters<typeof useDomEvent>[0], 'type'>, 'handler'>,
     'ref'
   >
-) => useDOMEvent({ type, handler, ...opts })
+) => useDomEvent({ type, handler, ...opts })
