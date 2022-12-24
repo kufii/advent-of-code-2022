@@ -66,10 +66,14 @@ const traverse = (
     }))
   )
 
-  const getBlizzards = memoize((n: number) => [
-    ...getBlizzardsX(n % blizzardsXCycle),
-    ...getBlizzardsY(n % blizzardsYCycle)
-  ])
+  const getBlizzards = memoize((n: number) => {
+    const grid = new InfiniteGrid('.')
+    ;[
+      ...getBlizzardsX(n % blizzardsXCycle),
+      ...getBlizzardsY(n % blizzardsYCycle)
+    ].forEach(({ x, y, value }) => grid.set(x, y, value))
+    return grid
+  })
 
   const getNeighbors = (end: Point) =>
     memoize((key: string) => {
@@ -79,9 +83,7 @@ const traverse = (
       const blizzards = getBlizzards(z)
       return [...getAdjacent({ x, y }), { x, y }]
         .filter(
-          ({ x, y }) =>
-            grid.get(x, y) !== '#' &&
-            !blizzards.some((b) => b.x === x && b.y === y)
+          ({ x, y }) => grid.get(x, y) !== '#' && blizzards.get(x, y) === '.'
         )
         .map((p) =>
           p.x === end.x && p.y === end.y
@@ -117,7 +119,7 @@ const traverse = (
     for (let i = 0; i < fullPath.length; i++) {
       const { x, y } = keyToPoint(fullPath[i])
       const newGrid = grid.clone()
-      const blizzards = getBlizzards(i % blizzardsLcm)
+      const blizzards = getBlizzards(i % blizzardsLcm).cells
       blizzards.forEach(({ x, y, value }) => newGrid.set(x, y, value))
       newGrid.set(x, y, <strong>E</strong>)
       frames.push(newGrid.toArray())
