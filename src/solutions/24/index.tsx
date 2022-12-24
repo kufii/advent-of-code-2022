@@ -175,7 +175,7 @@ export const Part1 = () => {
 }
 
 export const Part2 = () => {
-  const { result, output } = useSolution()
+  const { result, output } = useSolution(true)
 
   return (
     <>
