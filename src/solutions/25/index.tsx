@@ -31,7 +31,7 @@ const convertToNum = (str: string) => {
 }
 
 const convertToStr = (num: number) => {
-  const str = []
+  const str: string[] = []
   let power = 1
   while (true) {
     str.push('2')
