@@ -33,7 +33,7 @@ const convertToNum = (str: string) => {
 const convertToStr = (num: number) => {
   const str = []
   let power = 1
-  for (let i = 1; i < Infinity; i++) {
+  while (true) {
     str.push('2')
     if (num / (power * 2) <= 1) break
     power *= 5
